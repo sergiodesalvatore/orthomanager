@@ -933,38 +933,32 @@ async function jbPut(list){
 
 /* ---- LOAD ---- */
 async function loadData(){
-  document.getElementById('p-list').innerHTML = '<div class="loading-state"><div class="md-spinner"></div>Caricamento…</div>';
-  if(!BIN_ID){ patients=[];render();updateStats();return; }
-
-  // Se aperto da file:// i browser bloccano fetch per CORS — mostra avviso
-  if(window.location.protocol === 'file:'){
-    document.getElementById('p-list').innerHTML =
-      '<div class="empty-state"><div class="empty-icon"><span class="material-icons-round">open_in_browser</span></div>'
-      +'<h3>Apri tramite server</h3>'
-      +'<p>Il file aperto da locale non può connettersi al database.<br><br>'
-      +'<strong>Usa il link Vercel</strong> oppure carica il file su un server.</p></div>';
-    setSyncState('err');
-    return;
-  }
+  var plist = document.getElementById('p-list');
+  plist.innerHTML = '<div class="loading-state"><div class="md-spinner"></div>Connessione a JSONBin…</div>';
 
   try{
-    // timeout 8 secondi
-    var controller = new AbortController();
-    var timer = setTimeout(function(){ controller.abort(); }, 8000);
     var res = await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID+'/latest',{
-      headers:{'X-Master-Key':API_KEY}, signal: controller.signal
+      headers:{'X-Master-Key':API_KEY}
     });
-    clearTimeout(timer);
+    if(!res.ok){
+      var txt = await res.text();
+      throw new Error('HTTP '+res.status+': '+txt.slice(0,80));
+    }
     var data = await res.json();
-    patients = data.record.patients || [];
+    patients = data.record && data.record.patients ? data.record.patients : [];
     render(); updateStats();
+    setSyncState('ok');
   }catch(e){
     patients = [];
     render(); updateStats();
     setSyncState('err');
-    document.getElementById('p-list').innerHTML =
-      '<div class="empty-state"><div class="empty-icon"><span class="material-icons-round">wifi_off</span></div>'
-      +'<h3>Errore di connessione</h3><p>Controlla la connessione e ricarica</p></div>';
+    plist.innerHTML =
+      '<div class="empty-state">'
+      +'<div class="empty-icon"><span class="material-icons-round">wifi_off</span></div>'
+      +'<h3>Errore connessione</h3>'
+      +'<p style="font-size:.75rem;word-break:break-all;color:#b00020">'+e.message+'</p>'
+      +'<p style="margin-top:8px;font-size:.8rem">Ricarica la pagina</p>'
+      +'</div>';
   }
 }
 
@@ -978,7 +972,12 @@ async function silentSync(){
   if(!BIN_ID) return;
   setSyncState('syncing');
   try{
-    var fresh = await jbGet();
+    var res = await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID+'/latest',{
+      headers:{'X-Master-Key':API_KEY}
+    });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    var data = await res.json();
+    var fresh = data.record && data.record.patients ? data.record.patients : [];
     if(JSON.stringify(fresh)!==JSON.stringify(patients)){
       patients=fresh; render(); updateStats();
     }
