@@ -892,8 +892,8 @@ body {
 
 <script>
 var API_KEY  = '$2a$10$RV5cxNNHqP7SYsZfbyEJtOB5/FEj/mnrnC0vS/Ql8b3mWa5WA2f.6';
-var BIN_ID   = '';
-var USERNAME = 'Sergio';
+var BIN_ID   = '6a22c76fda38895dfe8c419a';
+var USERNAME = 'Daniela Lamberti';
 var STORAGE  = 'ortho_v3';
 
 var patients = [], editId = null, currentPage = 0;
@@ -902,46 +902,17 @@ var autoRefreshInterval = null, lastSync = null;
 /* ---- INIT ---- */
 (function init(){
   var cfg = loadCfg();
-  if(cfg && cfg.binId){ BIN_ID=cfg.binId; USERNAME=cfg.userName||'Sergio'; startApp(); }
-  else { createBin(); }
+  if(cfg && cfg.userName) USERNAME = cfg.userName;
+  startApp();
 })();
 
 function loadCfg(){ try{ return JSON.parse(localStorage.getItem(STORAGE)); }catch(e){ return null; } }
 function saveCfg(o){ localStorage.setItem(STORAGE, JSON.stringify(o)); }
 
-/* ---- CREATE BIN ---- */
-async function createBin(){
-  try{
-    var res = await fetch('https://api.jsonbin.io/v3/b',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','X-Master-Key':API_KEY,'X-Bin-Name':'ortho-patients','X-Bin-Private':'true'},
-      body:JSON.stringify({patients:[]})
-    });
-    var data = await res.json();
-    if(!res.ok) throw new Error(data.message||'Errore');
-    BIN_ID = data.metadata.id;
-    saveCfg({binId:BIN_ID, userName:USERNAME});
-    startApp();
-  }catch(e){ tryFindBin(); }
-}
-
-async function tryFindBin(){
-  try{
-    var res = await fetch('https://api.jsonbin.io/v3/b?sortBy=date',{ headers:{'X-Master-Key':API_KEY} });
-    var data = await res.json();
-    if(res.ok && data.result && data.result.length>0){
-      var f = data.result.find(function(b){ return b.snippetMeta&&b.snippetMeta.name==='ortho-patients'; })||data.result[0];
-      BIN_ID = f.snippetMeta ? f.snippetMeta.id : f.id||f._id;
-      saveCfg({binId:BIN_ID, userName:USERNAME});
-    }
-  }catch(e){}
-  startApp();
-}
-
 /* ---- START ---- */
 function startApp(){
   document.getElementById('set-username').textContent = USERNAME;
-  document.getElementById('set-binid').textContent = 'Bin ID: '+(BIN_ID||'—');
+  document.getElementById('set-binid').textContent = 'Bin: ortho-patients';
   loadData();
   startAutoRefresh();
 }
