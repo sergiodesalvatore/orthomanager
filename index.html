@@ -1444,28 +1444,27 @@ function updateExportPreview(){
 function pzToRow(p){
   var age = calcAge(p.nascita);
   return {
-    'Cognome': p.cognome||'',
-    'Nome': p.nome||'',
-    'Data di Nascita': p.nascita ? new Date(p.nascita).toLocaleDateString('it-IT') : '',
-    'Età': age>=0 ? age : '',
-    'Fascia Età': getFasciaEta(p.nascita),
-    'Patologia': p.patologia||'',
-    'Intervento': p.intervento||'',
-    'Note': p.note||'',
-    'ID': p.id||''
+    'Cognome':          p.cognome||'',
+    'Nome':             p.nome||'',
+    'Data di Nascita':  p.nascita ? new Date(p.nascita).toLocaleDateString('it-IT') : '',
+    'Eta (anni)':       age>=0 ? age : '',
+    'Fascia Eta':       getFasciaEta(p.nascita),
+    'Diagnosi':         p.patologia||'',
+    'Tipo Intervento':  p.intervento||'',
+    'Note Cliniche':    p.note||''
   };
 }
 
 function sheetFromList(list){
   var rows = list.map(pzToRow);
-  return XLSX.utils.json_to_sheet(rows);
+  var ws = XLSX.utils.json_to_sheet(rows);
+  return ws;
 }
 
-function styleSheet(ws, nRows){
-  // Larghezze colonne
+function styleSheet(ws){
   ws['!cols'] = [
-    {wch:18},{wch:18},{wch:16},{wch:6},{wch:12},
-    {wch:28},{wch:28},{wch:30},{wch:18}
+    {wch:20},{wch:20},{wch:16},{wch:10},{wch:14},
+    {wch:32},{wch:32},{wch:36}
   ];
 }
 
@@ -1479,7 +1478,7 @@ function doExport(){
 
   if(exportGroup === 'tutti' || exportFilters[0] !== 'tutti'){
     var ws = sheetFromList(list);
-    styleSheet(ws, list.length);
+    styleSheet(ws);
     XLSX.utils.book_append_sheet(wb, ws, 'Pazienti');
   } else {
     // Raggruppa per chiave
@@ -1501,7 +1500,7 @@ function doExport(){
     Object.keys(groups).sort().forEach(function(k){
       var name = k.replace(/[\/*?:\[\]]/g,'').slice(0,31);
       var ws = sheetFromList(groups[k]);
-      styleSheet(ws, groups[k].length);
+      styleSheet(ws);
       XLSX.utils.book_append_sheet(wb, ws, name);
     });
   }
