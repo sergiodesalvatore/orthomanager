@@ -1065,19 +1065,6 @@ function renderCards(list){
   }).join('');
 }
 
-  var grouped = {};
-  list.forEach(function(p){
-    var k = new Date(p.dimissione).toLocaleDateString('it-IT',{weekday:'long',day:'2-digit',month:'long'});
-    if(!grouped[k]) grouped[k]=[];
-    grouped[k].push(p);
-  });
-  var html = '';
-  Object.keys(grouped).forEach(function(day){
-    html += '<div class="sched-day-header">'+day+'</div>'+renderCards(grouped[day]);
-  });
-  el.innerHTML = html;
-}
-
 function emptyHTML(){
   return '<div class="empty-state"><div class="empty-icon"><span class="material-icons-round">person_search</span></div><h3>Nessun paziente</h3><p>Aggiungi il primo paziente con il pulsante +</p></div>';
 }
