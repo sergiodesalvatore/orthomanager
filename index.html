@@ -1167,23 +1167,28 @@ function snack(msg,type){
 }
 function esc(s){ return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-/* ---- LOGIN ---- */
-var USERS = [
-  { username: 'daniela.lamberti', password: 'daniela.lamberti', display: 'Daniela Lamberti' }
-];
+</script>
+
+<script>
+/* ============ LOGIN — script separato ============ */
+var USERS    = [{ username:'daniela.lamberti', password:'daniela.lamberti', display:'Daniela Lamberti' }];
 var AUTH_KEY = 'ortho_auth';
 
-function checkAuth(){
-  try{ return JSON.parse(sessionStorage.getItem(AUTH_KEY)); }catch(e){ return null; }
+function togglePwd(){
+  var inp  = document.getElementById('l-pass');
+  var icon = document.getElementById('eye-icon');
+  if(inp.type==='password'){ inp.type='text';      icon.textContent='visibility_off'; }
+  else                      { inp.type='password'; icon.textContent='visibility'; }
 }
 
 function doLogin(){
-  var user = document.getElementById('l-user').value.trim().toLowerCase();
-  var pass = document.getElementById('l-pass').value;
-  var errEl = document.getElementById('login-err');
-  var btn = document.getElementById('login-btn');
+  var user   = document.getElementById('l-user').value.trim().toLowerCase();
+  var pass   = document.getElementById('l-pass').value;
+  var errEl  = document.getElementById('login-err');
+  var btn    = document.getElementById('login-btn');
 
   errEl.style.display = 'none';
+
   var found = USERS.find(function(u){ return u.username===user && u.password===pass; });
 
   if(!found){
@@ -1191,7 +1196,7 @@ function doLogin(){
     errEl.style.display = 'flex';
     var card = document.getElementById('login-card');
     card.classList.remove('shake');
-    void card.offsetWidth; // reflow
+    void card.offsetWidth;
     card.classList.add('shake');
     return;
   }
@@ -1202,16 +1207,10 @@ function doLogin(){
 
   setTimeout(function(){
     document.getElementById('login-screen').classList.add('hidden');
-    USERNAME = found.display;
-    document.getElementById('set-username').textContent = USERNAME;
-  }, 500);
-}
-
-function togglePwd(){
-  var inp = document.getElementById('l-pass');
-  var icon = document.getElementById('eye-icon');
-  if(inp.type==='password'){ inp.type='text'; icon.textContent='visibility_off'; }
-  else { inp.type='password'; icon.textContent='visibility'; }
+    if(typeof USERNAME !== 'undefined') USERNAME = found.display;
+    var el = document.getElementById('set-username');
+    if(el) el.textContent = found.display;
+  }, 400);
 }
 
 function doLogout(){
@@ -1219,15 +1218,19 @@ function doLogout(){
   location.reload();
 }
 
-/* Controlla se già loggato in questa sessione */
-(function checkSession(){
-  var auth = checkAuth();
-  if(auth){
-    document.getElementById('login-screen').classList.add('hidden');
-    USERNAME = auth.display;
-  }
-})();
-
+/* Controlla sessione attiva — eseguito DOPO che il DOM è pronto */
+document.addEventListener('DOMContentLoaded', function(){
+  try{
+    var auth = JSON.parse(sessionStorage.getItem(AUTH_KEY));
+    if(auth && auth.username){
+      document.getElementById('login-screen').classList.add('hidden');
+      if(typeof USERNAME !== 'undefined') USERNAME = auth.display;
+      var el = document.getElementById('set-username');
+      if(el) el.textContent = auth.display;
+    }
+  }catch(e){}
+});
 </script>
+
 </body>
 </html>
