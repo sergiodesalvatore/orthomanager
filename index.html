@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>OrthoManager</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<style>
+/* =============================================
+   MATERIAL DESIGN 3 — OrthoManager
+   Teal primary palette
+============================================= */
+:root {
+  --md-primary: #00796B;
+  --md-primary-container: #B2DFDB;
+  --md-on-primary: #ffffff;
+  --md-on-primary-container: #004D40;
+  --md-secondary: #546E7A;
+  --md-surface: #FAFAFA;
+  --md-surface-1: #F5F5F5;
+  --md-surface-2: #EEEEEE;
+  --md-on-surface: #212121;
+  --md-on-surface-var: #757575;
+  --md-outline: #BDBDBD;
+  --md-outline-var: #E0E0E0;
+  --md-error: #B00020;
+  --md-error-container: #FDECEA;
+  --md-shadow: rgba(0,0,0,0.12);
+  --md-shadow-2: rgba(0,0,0,0.08);
+  --nav-h: 80px;
+  --top-h: 64px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background: var(--md-surface);
+  color: var(--md-on-surface);
+  height: 100vh; overflow: hidden;
+}
+
+/* =============================================
+   APP SHELL
+============================================= */
+#app {
+  display: flex; flex-direction: column;
+  height: 100vh; max-width: 600px;
+  margin: 0 auto; position: relative;
+  background: var(--md-surface);
+}
+
+/* =============================================
+   TOP APP BAR — MD3
+============================================= */
+.top-bar {
+  height: var(--top-h);
+  background: var(--md-primary);
+  display: flex; align-items: center;
+  padding: 0 4px 0 16px;
+  gap: 8px;
+  box-shadow: 0 2px 4px var(--md-shadow);
+  flex-shrink: 0; position: relative; z-index: 10;
+}
+.top-bar-title {
+  font-size: 1.25rem; font-weight: 500; color: #fff;
+  flex: 1; letter-spacing: 0.01em;
+}
+.top-bar-subtitle {
+  font-size: .72rem; color: rgba(255,255,255,.75);
+  font-weight: 400; display: block; margin-top: 1px;
+}
+.icon-btn {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: none; background: transparent; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; transition: background .2s; position: relative;
+}
+.icon-btn:hover { background: rgba(255,255,255,.12); }
+.icon-btn .material-icons-round { font-size: 24px; }
+.sync-chip {
+  display: flex; align-items: center; gap: 4px;
+  background: rgba(255,255,255,.15); border-radius: 16px;
+  padding: 4px 10px 4px 8px; font-size: .7rem;
+  font-weight: 500; color: #fff; white-space: nowrap;
+}
+.sync-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #80CBC4; flex-shrink: 0;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* =============================================
+   PAGES
+============================================= */
+.pages { flex: 1; overflow: hidden; position: relative; }
+.page {
+  position: absolute; inset: 0;
+  overflow-y: auto; overflow-x: hidden;
+  padding: 16px 16px calc(var(--nav-h) + 16px);
+  display: none;
+}
+.page.active { display: block; }
+
+/* =============================================
+   SUMMARY CARDS — MD3 style 2x2
+============================================= */
+.summary-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-bottom: 16px;
+}
+.sum-card {
+  border-radius: 16px;
+  padding: 16px;
+  background: #fff;
+  box-shadow: 0 1px 3px var(--md-shadow), 0 1px 2px var(--md-shadow-2);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.sum-card-top {
+  display: flex; align-items: center;
+  justify-content: space-between;
+}
+.sum-card-icon {
+  width: 40px; height: 40px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+.sum-card-icon .material-icons-round { font-size: 22px; }
+.sum-card-label {
+  font-size: .7rem; font-weight: 500; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--md-on-surface-var);
+}
+.sum-card-value {
+  font-size: 2.2rem; font-weight: 300; line-height: 1;
+  letter-spacing: -.02em;
+}
+
+/* Color variants */
+.sc-teal .sum-card-icon { background: #E0F2F1; color: #00796B; }
+.sc-teal .sum-card-value { color: #00695C; }
+.sc-blue .sum-card-icon { background: #E3F2FD; color: #1565C0; }
+.sc-blue .sum-card-value { color: #1565C0; }
+.sc-green .sum-card-icon { background: #E8F5E9; color: #2E7D32; }
+.sc-green .sum-card-value { color: #2E7D32; }
+.sc-amber .sum-card-icon { background: #FFF8E1; color: #E65100; }
+.sc-amber .sum-card-value { color: #E65100; }
+
+/* =============================================
+   SEARCH — MD3 Filled text field
+============================================= */
+.search-field {
+  background: var(--md-surface-1);
+  border-radius: 28px;
+  display: flex; align-items: center;
+  padding: 0 16px; gap: 12px; height: 52px;
+  margin-bottom: 12px;
+  border: 1px solid var(--md-outline-var);
+  transition: border-color .2s, box-shadow .2s;
+}
+.search-field:focus-within {
+  border-color: var(--md-primary);
+  box-shadow: 0 0 0 2px rgba(0,121,107,.1);
+  background: #fff;
+}
+.search-field .material-icons-round { color: var(--md-on-surface-var); font-size: 20px; }
+.search-field input {
+  flex: 1; border: none; outline: none; background: transparent;
+  font-family: 'Roboto', sans-serif; font-size: .94rem;
+  color: var(--md-on-surface);
+}
+.search-field input::placeholder { color: var(--md-on-surface-var); }
+
+/* =============================================
+   FILTER CHIPS — MD3
+============================================= */
+.chip-row {
+  display: flex; gap: 8px; margin-bottom: 16px;
+  overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;
+}
+.chip-row::-webkit-scrollbar { display: none; }
+.chip {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 16px; border-radius: 8px;
+  font-family: 'Roboto', sans-serif; font-size: .82rem;
+  font-weight: 500; border: 1px solid var(--md-outline);
+  background: #fff; color: var(--md-on-surface-var);
+  cursor: pointer; transition: all .18s; white-space: nowrap;
+  flex-shrink: 0;
+}
+.chip .material-icons-round { font-size: 16px; display: none; }
+.chip.active {
+  background: var(--md-primary-container);
+  border-color: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+}
+.chip.active .material-icons-round { display: inline; }
+
+/* =============================================
+   LIST HEADER
+============================================= */
+.list-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px; padding: 0 4px;
+}
+.list-title {
+  font-size: .82rem; font-weight: 500; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--md-on-surface-var);
+}
+.list-count {
+  font-size: .78rem; color: var(--md-on-surface-var);
+  background: var(--md-surface-2); padding: 2px 10px;
+  border-radius: 12px;
+}
+
+/* =============================================
+   PATIENT LIST ITEMS — MD3 List style
+============================================= */
+.p-card {
+  background: #fff;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 2px var(--md-shadow);
+  overflow: hidden;
+  animation: fadeIn .28s ease both;
+  border: 1px solid var(--md-outline-var);
+}
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+.pc-main {
+  display: flex; align-items: flex-start;
+  padding: 12px 16px 12px 12px; gap: 12px;
+}
+.pc-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 500; font-size: 1rem; flex-shrink: 0;
+  margin-top: 2px;
+}
+.pc-body { flex: 1; min-width: 0; }
+.pc-name {
+  font-size: .96rem; font-weight: 500; color: var(--md-on-surface);
+  margin-bottom: 3px; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pc-meta {
+  font-size: .8rem; color: var(--md-on-surface-var); line-height: 1.5;
+}
+.pc-meta span { display: block; }
+.pc-right {
+  display: flex; flex-direction: column; align-items: flex-end;
+  gap: 8px; flex-shrink: 0;
+}
+
+/* Status chips MD3 */
+.status-chip {
+  font-size: .7rem; font-weight: 500; padding: 3px 10px;
+  border-radius: 6px; white-space: nowrap; letter-spacing: .02em;
+}
+.s-ric { background: #E3F2FD; color: #1565C0; }
+.s-dim { background: #E8F5E9; color: #2E7D32; }
+.s-prog { background: #FFF8E1; color: #E65100; }
+
+.pc-date {
+  font-size: .72rem; color: var(--md-on-surface-var);
+  text-align: right;
+}
+
+/* Card actions */
+.pc-actions {
+  display: flex; border-top: 1px solid var(--md-outline-var);
+}
+.pc-action-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  gap: 6px; padding: 10px; font-family: 'Roboto', sans-serif;
+  font-size: .8rem; font-weight: 500; cursor: pointer;
+  border: none; background: transparent; transition: background .15s;
+}
+.pc-action-btn:first-child { border-right: 1px solid var(--md-outline-var); }
+.pc-action-btn.edit { color: var(--md-primary); }
+.pc-action-btn.edit:hover { background: #E0F2F1; }
+.pc-action-btn.del { color: var(--md-error); }
+.pc-action-btn.del:hover { background: var(--md-error-container); }
+.pc-action-btn .material-icons-round { font-size: 16px; }
+
+/* =============================================
+   EMPTY / LOADING
+============================================= */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 60px 24px; text-align: center;
+}
+.empty-icon {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: var(--md-surface-2);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 16px;
+}
+.empty-icon .material-icons-round { font-size: 32px; color: var(--md-on-surface-var); }
+.empty-state h3 { font-size: 1.05rem; font-weight: 500; margin-bottom: 6px; }
+.empty-state p { font-size: .84rem; color: var(--md-on-surface-var); line-height: 1.55; }
+.loading-state {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 48px 24px; color: var(--md-on-surface-var);
+}
+.md-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--md-outline-var);
+  border-top-color: var(--md-primary);
+  border-radius: 50%; animation: spin .7s linear infinite;
+  margin-bottom: 14px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* =============================================
+   FAB — MD3
+============================================= */
+.fab {
+  position: fixed;
+  bottom: calc(var(--nav-h) + 16px);
+  right: calc(50% - 300px + 16px);
+  width: 56px; height: 56px; border-radius: 16px;
+  background: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 3px 8px var(--md-shadow), 0 1px 3px var(--md-shadow-2);
+  transition: transform .2s, box-shadow .2s;
+  z-index: 50;
+}
+.fab:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 16px var(--md-shadow);
+}
+.fab .material-icons-round { font-size: 28px; }
+@media(max-width:600px){ .fab { right: 16px; } }
+
+/* =============================================
+   BOTTOM NAVIGATION — MD3
+============================================= */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 600px;
+  height: var(--nav-h);
+  background: #fff;
+  border-top: 1px solid var(--md-outline-var);
+  display: flex; align-items: stretch;
+  box-shadow: 0 -1px 3px var(--md-shadow-2);
+  z-index: 100;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 4px; cursor: pointer; padding: 12px 0 8px;
+  position: relative; border: none; background: transparent;
+}
+.nav-indicator {
+  position: absolute; top: 8px;
+  width: 64px; height: 32px; border-radius: 16px;
+  background: transparent; transition: background .2s;
+}
+.nav-item.active .nav-indicator { background: var(--md-primary-container); }
+.nav-icon {
+  position: relative; z-index: 1;
+  color: var(--md-on-surface-var); transition: color .2s;
+}
+.nav-icon .material-icons-round { font-size: 22px; }
+.nav-item.active .nav-icon { color: var(--md-on-primary-container); }
+.nav-label {
+  font-size: .68rem; font-weight: 500; letter-spacing: .03em;
+  color: var(--md-on-surface-var); transition: color .2s;
+}
+.nav-item.active .nav-label { color: var(--md-on-primary-container); font-weight: 700; }
+
+/* =============================================
+   MODAL — MD3 Bottom Sheet
+============================================= */
+.modal-scrim {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.32);
+}
+.modal-scrim.open { display: block; }
+.modal-sheet {
+  position: fixed; bottom: 0; left: 50%; z-index: 201;
+  transform: translateX(-50%) translateY(100%);
+  width: 100%; max-width: 600px;
+  background: var(--md-surface);
+  border-radius: 28px 28px 0 0;
+  max-height: 92vh; overflow-y: auto;
+  transition: transform .3s cubic-bezier(.2,0,0,1);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.modal-sheet.open { transform: translateX(-50%) translateY(0); }
+.sheet-handle {
+  width: 32px; height: 4px; border-radius: 2px;
+  background: var(--md-outline); margin: 12px auto 0;
+}
+.sheet-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px 8px;
+}
+.sheet-title {
+  font-size: 1.1rem; font-weight: 500; color: var(--md-on-surface);
+}
+.sheet-body { padding: 8px 24px 24px; }
+
+/* =============================================
+   MD3 TEXT FIELDS
+============================================= */
+.md-field { margin-bottom: 16px; position: relative; }
+.md-field label {
+  display: block; font-size: .75rem; font-weight: 500;
+  color: var(--md-primary); margin-bottom: 4px;
+  letter-spacing: .04em;
+}
+.md-field input, .md-field select, .md-field textarea {
+  width: 100%;
+  background: var(--md-surface-1);
+  border: 1px solid var(--md-outline);
+  border-radius: 4px 4px 0 0;
+  border-bottom: 2px solid var(--md-outline);
+  padding: 14px 12px 6px;
+  font-family: 'Roboto', sans-serif;
+  font-size: .94rem; color: var(--md-on-surface);
+  outline: none; transition: all .2s;
+  -webkit-appearance: none;
+}
+.md-field input:focus, .md-field select:focus, .md-field textarea:focus {
+  border-bottom-color: var(--md-primary);
+  background: #fff;
+}
+.md-field textarea { resize: none; min-height: 80px; }
+
+/* MD3 Buttons */
+.md-btn-filled {
+  width: 100%; padding: 14px;
+  background: var(--md-primary); color: var(--md-on-primary);
+  border: none; border-radius: 24px;
+  font-family: 'Roboto', sans-serif; font-size: .94rem;
+  font-weight: 500; letter-spacing: .06em; cursor: pointer;
+  transition: box-shadow .2s, opacity .2s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 1px 3px var(--md-shadow);
+}
+.md-btn-filled:hover { box-shadow: 0 3px 8px var(--md-shadow); }
+.md-btn-filled:disabled { opacity: .6; cursor: not-allowed; }
+.md-btn-filled .material-icons-round { font-size: 20px; }
+
+.err-banner {
+  background: var(--md-error-container);
+  border-radius: 8px; padding: 10px 14px;
+  font-size: .82rem; color: var(--md-error);
+  margin-bottom: 14px; display: none;
+  align-items: center; gap: 8px;
+}
+.err-banner .material-icons-round { font-size: 18px; }
+
+/* =============================================
+   SETTINGS PAGE
+============================================= */
+.settings-group {
+  background: #fff; border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--md-outline-var);
+  margin-bottom: 16px;
+  box-shadow: 0 1px 2px var(--md-shadow-2);
+}
+.settings-group-title {
+  font-size: .72rem; font-weight: 500; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--md-on-surface-var);
+  padding: 12px 16px 6px;
+}
+.settings-row {
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 16px; cursor: pointer; transition: background .15s;
+  border-top: 1px solid var(--md-outline-var);
+}
+.settings-row:first-of-type { border-top: none; }
+.settings-row:hover { background: var(--md-surface-1); }
+.sr-icon-wrap {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.sr-icon-wrap .material-icons-round { font-size: 20px; }
+.sr-text { flex: 1; }
+.sr-label { font-size: .9rem; font-weight: 400; color: var(--md-on-surface); }
+.sr-sub { font-size: .76rem; color: var(--md-on-surface-var); margin-top: 2px; }
+.sr-chevron { color: var(--md-on-surface-var); }
+.sr-chevron .material-icons-round { font-size: 20px; }
+
+/* =============================================
+   SCHEDULE
+============================================= */
+.sched-day-header {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--md-primary);
+  padding: 12px 4px 6px;
+  display: flex; align-items: center; gap: 8px;
+}
+.sched-day-header::after {
+  content: ''; flex: 1; height: 1px;
+  background: var(--md-primary-container);
+}
+
+/* =============================================
+   PAGE HEADER (Patients, Schedule, Settings)
+============================================= */
+.page-title {
+  font-size: 1.5rem; font-weight: 300; letter-spacing: -.01em;
+  color: var(--md-on-surface); margin-bottom: 16px; padding: 4px 0;
+}
+
+/* SNACKBAR */
+#snackbar {
+  position: fixed; bottom: calc(var(--nav-h) + 12px);
+  left: 50%; transform: translateX(-50%);
+  background: #323232; color: #fff;
+  padding: 12px 20px; border-radius: 8px;
+  font-size: .86rem; font-weight: 400;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s; z-index: 999;
+  white-space: nowrap; min-width: 180px; text-align: center;
+  box-shadow: 0 3px 8px rgba(0,0,0,.3);
+}
+#snackbar.show { opacity: 1; }
+#snackbar.err { background: #B00020; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: var(--md-outline); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TOP APP BAR -->
+  <div class="top-bar">
+    <span class="material-icons-round" style="color:rgba(255,255,255,.9);font-size:26px">vaccines</span>
+    <div style="flex:1;margin-left:8px">
+      <div class="top-bar-title">OrthoManager</div>
+    </div>
+    <div class="sync-chip" id="sync-chip">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-label">LIVE</span>
+    </div>
+    <button class="icon-btn" onclick="focusSearch()" title="Cerca">
+      <span class="material-icons-round">search</span>
+    </button>
+  </div>
+
+  <!-- PAGES -->
+  <div class="pages">
+
+    <!-- PAGE: DASHBOARD -->
+    <div class="page active" id="page-0">
+      <div class="summary-grid">
+        <div class="sum-card sc-teal">
+          <div class="sum-card-top">
+            <span class="sum-card-label">Totali</span>
+            <div class="sum-card-icon"><span class="material-icons-round">group</span></div>
+          </div>
+          <div class="sum-card-value" id="s-tot">0</div>
+        </div>
+        <div class="sum-card sc-blue">
+          <div class="sum-card-top">
+            <span class="sum-card-label">Ricoverati</span>
+            <div class="sum-card-icon"><span class="material-icons-round">bed</span></div>
+          </div>
+          <div class="sum-card-value" id="s-ric">0</div>
+        </div>
+        <div class="sum-card sc-green">
+          <div class="sum-card-top">
+            <span class="sum-card-label">Dimessi</span>
+            <div class="sum-card-icon"><span class="material-icons-round">check_circle</span></div>
+          </div>
+          <div class="sum-card-value" id="s-dim">0</div>
+        </div>
+        <div class="sum-card sc-amber">
+          <div class="sum-card-top">
+            <span class="sum-card-label">Programmati</span>
+            <div class="sum-card-icon"><span class="material-icons-round">event</span></div>
+          </div>
+          <div class="sum-card-value" id="s-prog">0</div>
+        </div>
+      </div>
+
+      <div class="search-field">
+        <span class="material-icons-round">search</span>
+        <input type="text" id="q-search" placeholder="Cerca paziente, patologia, intervento…" oninput="render()">
+      </div>
+
+      <div class="chip-row">
+        <div class="chip active" onclick="setFilter(this,'')">
+          <span class="material-icons-round">done</span>Tutti
+        </div>
+        <div class="chip" onclick="setFilter(this,'Ricoverato')">
+          <span class="material-icons-round">done</span>Ricoverati
+        </div>
+        <div class="chip" onclick="setFilter(this,'Dimesso')">
+          <span class="material-icons-round">done</span>Dimessi
+        </div>
+        <div class="chip" onclick="setFilter(this,'Programmato')">
+          <span class="material-icons-round">done</span>Programmati
+        </div>
+      </div>
+
+      <div class="list-header">
+        <span class="list-title">Pazienti</span>
+        <span class="list-count" id="cnt">0</span>
+      </div>
+      <div id="p-list"><div class="loading-state"><div class="md-spinner"></div>Connessione al database…</div></div>
+    </div>
+
+    <!-- PAGE: PATIENTS -->
+    <div class="page" id="page-1">
+      <div class="page-title">Tutti i pazienti</div>
+      <div class="search-field">
+        <span class="material-icons-round">search</span>
+        <input type="text" id="q-search2" placeholder="Cerca…" oninput="render()">
+      </div>
+      <div id="p-list2"></div>
+    </div>
+
+    <!-- PAGE: SCHEDULE -->
+    <div class="page" id="page-2">
+      <div class="page-title">Agenda dimissioni</div>
+      <div id="sched-list"></div>
+    </div>
+
+    <!-- PAGE: SETTINGS -->
+    <div class="page" id="page-3">
+      <div class="page-title">Impostazioni</div>
+      <div class="settings-group">
+        <div class="settings-group-title">Connessione</div>
+        <div class="settings-row">
+          <div class="sr-icon-wrap" style="background:#E0F2F1">
+            <span class="material-icons-round" style="color:#00796B">cloud_done</span>
+          </div>
+          <div class="sr-text">
+            <div class="sr-label">JSONBin.io</div>
+            <div class="sr-sub" id="set-binid">Bin ID: —</div>
+          </div>
+        </div>
+        <div class="settings-row" onclick="syncNow()">
+          <div class="sr-icon-wrap" style="background:#E3F2FD">
+            <span class="material-icons-round" style="color:#1565C0">sync</span>
+          </div>
+          <div class="sr-text">
+            <div class="sr-label">Sincronizza ora</div>
+            <div class="sr-sub" id="set-lastsync">Auto-sync ogni 30s</div>
+          </div>
+          <div class="sr-chevron"><span class="material-icons-round">chevron_right</span></div>
+        </div>
+      </div>
+      <div class="settings-group">
+        <div class="settings-group-title">Account</div>
+        <div class="settings-row">
+          <div class="sr-icon-wrap" style="background:#F3E5F5">
+            <span class="material-icons-round" style="color:#6A1B9A">person</span>
+          </div>
+          <div class="sr-text">
+            <div class="sr-label" id="set-username">—</div>
+            <div class="sr-sub">Operatore connesso</div>
+          </div>
+        </div>
+        <div class="settings-row" onclick="doDisconnect()">
+          <div class="sr-icon-wrap" style="background:#FDECEA">
+            <span class="material-icons-round" style="color:#B00020">settings_backup_restore</span>
+          </div>
+          <div class="sr-text">
+            <div class="sr-label" style="color:#B00020">Reset configurazione</div>
+            <div class="sr-sub">Riconfigura API Key JSONBin</div>
+          </div>
+          <div class="sr-chevron"><span class="material-icons-round">chevron_right</span></div>
+        </div>
+      </div>
+      <p style="text-align:center;font-size:.74rem;color:var(--md-on-surface-var);padding:8px">
+        OrthoManager v3.0 · Material Design 3
+      </p>
+    </div>
+
+  </div>
+
+  <!-- FAB -->
+  <button class="fab" onclick="openModal()" id="fab">
+    <span class="material-icons-round">add</span>
+  </button>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-0" onclick="goPage(0)">
+      <div class="nav-indicator"></div>
+      <div class="nav-icon"><span class="material-icons-round">dashboard</span></div>
+      <span class="nav-label">Dashboard</span>
+    </button>
+    <button class="nav-item" id="nav-1" onclick="goPage(1)">
+      <div class="nav-indicator"></div>
+      <div class="nav-icon"><span class="material-icons-round">people</span></div>
+      <span class="nav-label">Pazienti</span>
+    </button>
+    <button class="nav-item" id="nav-2" onclick="goPage(2)">
+      <div class="nav-indicator"></div>
+      <div class="nav-icon"><span class="material-icons-round">calendar_month</span></div>
+      <span class="nav-label">Agenda</span>
+    </button>
+    <button class="nav-item" id="nav-3" onclick="goPage(3)">
+      <div class="nav-indicator"></div>
+      <div class="nav-icon"><span class="material-icons-round">settings</span></div>
+      <span class="nav-label">Impostazioni</span>
+    </button>
+  </nav>
+
+</div>
+
+<!-- MODAL BOTTOM SHEET -->
+<div class="modal-scrim" id="modal-scrim" onclick="closeModal()"></div>
+<div class="modal-sheet" id="modal-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-title" id="m-title">Nuovo Paziente</div>
+    <button class="icon-btn" onclick="closeModal()" style="color:var(--md-on-surface-var)">
+      <span class="material-icons-round">close</span>
+    </button>
+  </div>
+  <div class="sheet-body">
+    <div class="err-banner" id="m-err">
+      <span class="material-icons-round">error_outline</span>
+      <span id="m-err-text">Compila i campi obbligatori</span>
+    </div>
+    <div class="md-field"><label>Nome *</label><input type="text" id="f-nome" placeholder="Mario"></div>
+    <div class="md-field"><label>Cognome *</label><input type="text" id="f-cog" placeholder="Rossi"></div>
+    <div class="md-field"><label>Patologia *</label><input type="text" id="f-pat" placeholder="es. Scoliosi, Coxartrosi…"></div>
+    <div class="md-field">
+      <label>Tipo Intervento *</label>
+      <select id="f-int" onchange="document.getElementById('f-altro-g').style.display=this.value==='Altro'?'block':'none'">
+        <option value="">Seleziona…</option>
+        <option>Artroscopia</option><option>Protesi anca</option><option>Protesi ginocchio</option>
+        <option>Fusione vertebrale</option><option>Osteotomia</option><option>Fissazione frattura</option><option>Altro</option>
+      </select>
+    </div>
+    <div class="md-field" id="f-altro-g" style="display:none">
+      <label>Specifica intervento</label>
+      <input type="text" id="f-altro" placeholder="Descrivi l'intervento">
+    </div>
+    <div class="md-field">
+      <label>Stato</label>
+      <select id="f-stato">
+        <option>Ricoverato</option><option>Programmato</option><option>Dimesso</option>
+      </select>
+    </div>
+    <div class="md-field"><label>Data Dimissione</label><input type="date" id="f-data"></div>
+    <div class="md-field"><label>Note cliniche</label><textarea id="f-note" placeholder="Note aggiuntive…"></textarea></div>
+    <button class="md-btn-filled" onclick="savePz()" id="m-btn">
+      <span class="material-icons-round">save</span>
+      Salva Paziente
+    </button>
+  </div>
+</div>
+
+<div id="snackbar"></div>
+
+<script>
+var API_KEY  = '$2a$10$RV5cxNNHqP7SYsZfbyEJtOB5/FEj/mnrnC0vS/Ql8b3mWa5WA2f.6';
+var BIN_ID   = '';
+var USERNAME = 'Sergio';
+var STORAGE  = 'ortho_v3';
+
+var patients = [], editId = null, filterStato = '', currentPage = 0;
+var autoRefreshInterval = null, lastSync = null;
+
+/* ---- INIT ---- */
+(function init(){
+  var cfg = loadCfg();
+  if(cfg && cfg.binId){ BIN_ID=cfg.binId; USERNAME=cfg.userName||'Sergio'; startApp(); }
+  else { createBin(); }
+})();
+
+function loadCfg(){ try{ return JSON.parse(localStorage.getItem(STORAGE)); }catch(e){ return null; } }
+function saveCfg(o){ localStorage.setItem(STORAGE, JSON.stringify(o)); }
+
+/* ---- CREATE BIN ---- */
+async function createBin(){
+  try{
+    var res = await fetch('https://api.jsonbin.io/v3/b',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Master-Key':API_KEY,'X-Bin-Name':'ortho-patients','X-Bin-Private':'true'},
+      body:JSON.stringify({patients:[]})
+    });
+    var data = await res.json();
+    if(!res.ok) throw new Error(data.message||'Errore');
+    BIN_ID = data.metadata.id;
+    saveCfg({binId:BIN_ID, userName:USERNAME});
+    startApp();
+  }catch(e){ tryFindBin(); }
+}
+
+async function tryFindBin(){
+  try{
+    var res = await fetch('https://api.jsonbin.io/v3/b?sortBy=date',{ headers:{'X-Master-Key':API_KEY} });
+    var data = await res.json();
+    if(res.ok && data.result && data.result.length>0){
+      var f = data.result.find(function(b){ return b.snippetMeta&&b.snippetMeta.name==='ortho-patients'; })||data.result[0];
+      BIN_ID = f.snippetMeta ? f.snippetMeta.id : f.id||f._id;
+      saveCfg({binId:BIN_ID, userName:USERNAME});
+    }
+  }catch(e){}
+  startApp();
+}
+
+/* ---- START ---- */
+function startApp(){
+  document.getElementById('set-username').textContent = USERNAME;
+  document.getElementById('set-binid').textContent = 'Bin ID: '+(BIN_ID||'—');
+  loadData();
+  startAutoRefresh();
+}
+
+/* ---- JSONBIN ---- */
+async function jbGet(){
+  var res = await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID+'/latest',{ headers:{'X-Master-Key':API_KEY} });
+  var data = await res.json();
+  return data.record.patients||[];
+}
+async function jbPut(list){
+  await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID,{
+    method:'PUT',
+    headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},
+    body:JSON.stringify({patients:list})
+  });
+}
+
+/* ---- LOAD ---- */
+async function loadData(){
+  document.getElementById('p-list').innerHTML = '<div class="loading-state"><div class="md-spinner"></div>Caricamento…</div>';
+  if(!BIN_ID){ patients=[];render();updateStats();return; }
+  try{
+    patients = await jbGet();
+    render(); updateStats(); renderSchedule();
+  }catch(e){
+    document.getElementById('p-list').innerHTML = '<div class="empty-state"><div class="empty-icon"><span class="material-icons-round">wifi_off</span></div><h3>Errore di connessione</h3><p>Ricarica la pagina</p></div>';
+  }
+}
+
+/* ---- AUTO REFRESH ---- */
+function startAutoRefresh(){
+  if(autoRefreshInterval) clearInterval(autoRefreshInterval);
+  autoRefreshInterval = setInterval(silentSync, 30000);
+}
+
+async function silentSync(){
+  if(!BIN_ID) return;
+  setSyncState('syncing');
+  try{
+    var fresh = await jbGet();
+    if(JSON.stringify(fresh)!==JSON.stringify(patients)){
+      patients=fresh; render(); updateStats(); renderSchedule();
+    }
+    lastSync = new Date();
+    setSyncState('ok');
+    var ls = document.getElementById('set-lastsync');
+    if(ls) ls.textContent = 'Sync: '+lastSync.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }catch(e){ setSyncState('err'); }
+}
+
+function setSyncState(s){
+  var dot = document.getElementById('sync-dot');
+  var lbl = document.getElementById('sync-label');
+  var chip = document.getElementById('sync-chip');
+  if(s==='syncing'){
+    dot.style.background='#FFB300'; lbl.textContent='SYNC';
+    chip.style.background='rgba(255,255,255,.15)';
+  } else if(s==='ok'){
+    var t = lastSync ? lastSync.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}) : '';
+    dot.style.background='#80CBC4'; lbl.textContent='LIVE '+t;
+    chip.style.background='rgba(255,255,255,.15)';
+  } else {
+    dot.style.background='#EF9A9A'; lbl.textContent='OFFLINE';
+    chip.style.background='rgba(239,154,154,.2)';
+  }
+}
+
+async function syncNow(){
+  snack('Sincronizzazione…');
+  await silentSync();
+  snack('Aggiornato ✓');
+}
+
+/* ---- STATS ---- */
+function updateStats(){
+  document.getElementById('s-tot').textContent  = patients.length;
+  document.getElementById('s-ric').textContent  = patients.filter(function(p){return p.stato==='Ricoverato';}).length;
+  document.getElementById('s-dim').textContent  = patients.filter(function(p){return p.stato==='Dimesso';}).length;
+  document.getElementById('s-prog').textContent = patients.filter(function(p){return p.stato==='Programmato';}).length;
+}
+
+/* ---- RENDER ---- */
+function render(){
+  var s = (document.getElementById('q-search').value||document.getElementById('q-search2').value||'').toLowerCase();
+  var list = patients.filter(function(p){
+    return((!s)||(p.nome+' '+p.cognome+' '+p.patologia+' '+p.intervento).toLowerCase().includes(s))&&(!filterStato||p.stato===filterStato);
+  });
+  document.getElementById('cnt').textContent = list.length;
+  var html = list.length ? renderCards(list) : emptyHTML();
+  document.getElementById('p-list').innerHTML = html;
+  document.getElementById('p-list2').innerHTML = html;
+}
+
+function renderCards(list){
+  return list.map(function(p,i){
+    var sc = p.stato==='Ricoverato'?'s-ric':p.stato==='Dimesso'?'s-dim':'s-prog';
+    var dd = p.dimissione ? new Date(p.dimissione).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+    var initials = ((p.nome||'?')[0]+(p.cognome||'?')[0]).toUpperCase();
+    var noteRow = p.note ? '<span style="font-size:.76rem;opacity:.7;font-style:italic">'+esc(p.note)+'</span>' : '';
+    return '<div class="p-card" style="animation-delay:'+i*.04+'s">'
+      +'<div class="pc-main">'
+      +'<div class="pc-avatar">'+initials+'</div>'
+      +'<div class="pc-body">'
+      +'<div class="pc-name">'+esc(p.cognome)+', '+esc(p.nome)+'</div>'
+      +'<div class="pc-meta">'
+      +'<span>🩺 '+esc(p.patologia)+'</span>'
+      +'<span>⚕️ '+esc(p.intervento)+(p.interventoAltro?' — '+esc(p.interventoAltro):'')+'</span>'
+      +noteRow
+      +'</div></div>'
+      +'<div class="pc-right">'
+      +'<div class="status-chip '+sc+'">'+esc(p.stato)+'</div>'
+      +'<div class="pc-date">📅 '+dd+'</div>'
+      +'</div></div>'
+      +'<div class="pc-actions">'
+      +'<button class="pc-action-btn edit" onclick="editPz(\''+p.id+'\')">'
+      +'<span class="material-icons-round">edit</span>Modifica'
+      +'</button>'
+      +'<button class="pc-action-btn del" onclick="delPz(\''+p.id+'\')">'
+      +'<span class="material-icons-round">delete</span>Elimina'
+      +'</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+function renderSchedule(){
+  var today = new Date(); today.setHours(0,0,0,0);
+  var end = new Date(today); end.setDate(end.getDate()+14);
+  var list = patients.filter(function(p){
+    if(!p.dimissione) return false;
+    var d = new Date(p.dimissione); d.setHours(0,0,0,0);
+    return d>=today && d<=end;
+  }).sort(function(a,b){ return new Date(a.dimissione)-new Date(b.dimissione); });
+
+  var el = document.getElementById('sched-list');
+  if(!list.length){
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon"><span class="material-icons-round">event_available</span></div><h3>Nessuna dimissione</h3><p>Nessuna dimissione programmata nei prossimi 14 giorni</p></div>';
+    return;
+  }
+  var grouped = {};
+  list.forEach(function(p){
+    var k = new Date(p.dimissione).toLocaleDateString('it-IT',{weekday:'long',day:'2-digit',month:'long'});
+    if(!grouped[k]) grouped[k]=[];
+    grouped[k].push(p);
+  });
+  var html = '';
+  Object.keys(grouped).forEach(function(day){
+    html += '<div class="sched-day-header">'+day+'</div>'+renderCards(grouped[day]);
+  });
+  el.innerHTML = html;
+}
+
+function emptyHTML(){
+  return '<div class="empty-state"><div class="empty-icon"><span class="material-icons-round">person_search</span></div><h3>Nessun paziente</h3><p>Aggiungi il primo paziente con il pulsante +</p></div>';
+}
+
+/* ---- FILTERS ---- */
+function setFilter(el, val){
+  filterStato = val;
+  document.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('active'); });
+  el.classList.add('active');
+  render();
+}
+
+/* ---- NAVIGATION ---- */
+function goPage(n){
+  currentPage = n;
+  for(var i=0;i<4;i++){
+    document.getElementById('page-'+i).classList.toggle('active',i===n);
+    document.getElementById('nav-'+i).classList.toggle('active',i===n);
+  }
+  document.getElementById('fab').style.display = (n===0||n===1)?'flex':'none';
+  if(n===2) renderSchedule();
+}
+function focusSearch(){ goPage(0); setTimeout(function(){document.getElementById('q-search').focus();},100); }
+
+/* ---- MODAL ---- */
+function openModal(p){
+  editId = p?p.id:null;
+  document.getElementById('m-title').textContent = p?'Modifica Paziente':'Nuovo Paziente';
+  document.getElementById('m-btn').innerHTML = '<span class="material-icons-round">'+(p?'save':'add')+'</span>'+(p?'Aggiorna Paziente':'Salva Paziente');
+  document.getElementById('f-nome').value  = p&&p.nome||'';
+  document.getElementById('f-cog').value   = p&&p.cognome||'';
+  document.getElementById('f-pat').value   = p&&p.patologia||'';
+  document.getElementById('f-int').value   = p&&p.intervento||'';
+  document.getElementById('f-altro').value = p&&p.interventoAltro||'';
+  document.getElementById('f-altro-g').style.display = (p&&p.intervento==='Altro')?'block':'none';
+  document.getElementById('f-stato').value = p&&p.stato||'Ricoverato';
+  document.getElementById('f-data').value  = p&&p.dimissione||'';
+  document.getElementById('f-note').value  = p&&p.note||'';
+  document.getElementById('m-err').style.display = 'none';
+  document.getElementById('modal-scrim').classList.add('open');
+  document.getElementById('modal-sheet').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('modal-scrim').classList.remove('open');
+  document.getElementById('modal-sheet').classList.remove('open');
+}
+function editPz(id){ var p=patients.find(function(x){return x.id===id;}); if(p)openModal(p); }
+
+/* ---- SAVE ---- */
+async function savePz(){
+  var nome=document.getElementById('f-nome').value.trim();
+  var cog=document.getElementById('f-cog').value.trim();
+  var pat=document.getElementById('f-pat').value.trim();
+  var intv=document.getElementById('f-int').value;
+  var altro=document.getElementById('f-altro').value.trim();
+  var stato=document.getElementById('f-stato').value;
+  var data=document.getElementById('f-data').value;
+  var note=document.getElementById('f-note').value.trim();
+  var errEl=document.getElementById('m-err');
+  var btn=document.getElementById('m-btn');
+
+  if(!nome||!cog||!pat||!intv){
+    document.getElementById('m-err-text').textContent='Compila i campi obbligatori (*)';
+    errEl.style.display='flex'; return;
+  }
+  errEl.style.display='none';
+  var rec={nome:nome,cognome:cog,patologia:pat,intervento:intv,interventoAltro:altro,stato:stato,dimissione:data,note:note};
+  btn.disabled=true; btn.innerHTML='<span class="material-icons-round">hourglass_top</span>Salvataggio…';
+
+  var list=patients.slice();
+  if(editId){ list=list.map(function(p){ return p.id===editId?Object.assign({},p,rec):p; }); }
+  else{ rec.id='PZ-'+Date.now(); rec.createdAt=new Date().toISOString(); list.unshift(rec); }
+
+  try{
+    if(BIN_ID) await jbPut(list);
+    patients=list; render(); updateStats(); renderSchedule();
+    closeModal(); snack(editId?'Paziente aggiornato':'Paziente aggiunto ✓');
+  }catch(e){
+    document.getElementById('m-err-text').textContent='Errore di rete. Riprova.';
+    errEl.style.display='flex';
+  }
+  btn.disabled=false;
+  btn.innerHTML='<span class="material-icons-round">'+(editId?'save':'add')+'</span>'+(editId?'Aggiorna Paziente':'Salva Paziente');
+}
+
+/* ---- DELETE ---- */
+async function delPz(id){
+  if(!confirm('Eliminare questo paziente?')) return;
+  var list=patients.filter(function(p){return p.id!==id;});
+  try{
+    if(BIN_ID) await jbPut(list);
+    patients=list; render(); updateStats(); renderSchedule(); snack('Paziente eliminato','err');
+  }catch(e){ snack('Errore di rete','err'); }
+}
+
+/* ---- DISCONNECT ---- */
+function doDisconnect(){
+  if(!confirm('Resettare la configurazione?\nI dati rimarranno su JSONBin.')) return;
+  localStorage.removeItem(STORAGE); location.reload();
+}
+
+/* ---- UTILS ---- */
+function snack(msg,type){
+  var s=document.getElementById('snackbar');
+  s.textContent=msg; s.className='show'+(type?' '+type:'');
+  setTimeout(function(){s.className='';},2800);
+}
+function esc(s){ return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>
