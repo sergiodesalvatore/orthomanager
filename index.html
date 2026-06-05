@@ -890,7 +890,16 @@ body {
 
 <div id="snackbar"></div>
 
+
+
+
+
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+
+/* ============================================================
+   VARIABILI GLOBALI
+============================================================ */
 var API_KEY  = '$2a$10$RV5cxNNHqP7SYsZfbyEJtOB5/FEj/mnrnC0vS/Ql8b3mWa5WA2f.6';
 var BIN_ID   = '6a22c76fda38895dfe8c419a';
 var USERNAME = 'Daniela Lamberti';
@@ -1162,9 +1171,9 @@ function snack(msg,type){
 }
 function esc(s){ return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-</script>
-
-<script>
+/* ============================================================
+   LOGIN
+============================================================ */
 /* ============ LOGIN — script separato ============ */
 var USERS    = [{ username:'daniela.lamberti', password:'daniela.lamberti', display:'Daniela Lamberti' }];
 var AUTH_KEY = 'ortho_auth';
@@ -1227,7 +1236,8 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   }catch(e){}
 });
-</script>
 
+}); // fine DOMContentLoaded
+</script>
 </body>
 </html>
