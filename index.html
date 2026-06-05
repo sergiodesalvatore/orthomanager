@@ -903,7 +903,7 @@ var autoRefreshInterval = null, lastSync = null;
 (function init(){
   var cfg = loadCfg();
   if(cfg && cfg.userName) USERNAME = cfg.userName;
-  startApp();
+  // startApp viene chiamato dal login dopo autenticazione
 })();
 
 function loadCfg(){ try{ return JSON.parse(localStorage.getItem(STORAGE)); }catch(e){ return null; } }
@@ -1206,6 +1206,7 @@ function doLogin(){
     if(typeof USERNAME !== 'undefined') USERNAME = found.display;
     var el = document.getElementById('set-username');
     if(el) el.textContent = found.display;
+    if(typeof startApp === 'function') startApp();
   }, 400);
 }
 
@@ -1223,6 +1224,7 @@ document.addEventListener('DOMContentLoaded', function(){
       if(typeof USERNAME !== 'undefined') USERNAME = auth.display;
       var el = document.getElementById('set-username');
       if(el) el.textContent = auth.display;
+      if(typeof startApp === 'function') startApp();
     }
   }catch(e){}
 });
