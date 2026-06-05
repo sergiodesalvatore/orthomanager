@@ -529,9 +529,186 @@ body {
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: var(--md-outline); border-radius: 2px; }
+
+/* =============================================
+   LOGIN SCREEN — Material Design 3
+============================================= */
+#login-screen {
+  position: fixed; inset: 0; z-index: 999;
+  background: linear-gradient(160deg, #004D40 0%, #00695C 40%, #00796B 70%, #009688 100%);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; font-family: 'Roboto', sans-serif;
+}
+#login-screen.hidden { display: none; }
+
+.login-card {
+  width: 100%; max-width: 380px;
+  background: rgba(255,255,255,0.97);
+  border-radius: 28px;
+  padding: 40px 32px 32px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.2);
+  position: relative; overflow: hidden;
+}
+.login-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, #00796B, #4DB6AC, #00796B);
+  background-size: 200%; animation: shimmer 3s linear infinite;
+}
+@keyframes shimmer { 0%{background-position:0%} 100%{background-position:200%} }
+
+.login-logo {
+  text-align: center; margin-bottom: 32px;
+}
+.login-logo-icon {
+  width: 72px; height: 72px; border-radius: 20px;
+  background: linear-gradient(135deg, #00796B, #004D40);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 14px;
+  box-shadow: 0 8px 24px rgba(0,121,107,0.35);
+}
+.login-logo-icon .material-icons-round { font-size: 36px; color: #fff; }
+.login-app-name {
+  font-size: 1.5rem; font-weight: 300; color: #212121; letter-spacing: 0.02em;
+}
+.login-app-name strong { font-weight: 600; color: #00796B; }
+.login-subtitle {
+  font-size: .8rem; color: #757575; margin-top: 4px; letter-spacing: 0.04em;
+}
+
+.login-field {
+  position: relative; margin-bottom: 20px;
+}
+.login-field label {
+  display: block; font-size: .75rem; font-weight: 500;
+  color: #00796B; margin-bottom: 6px; letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.login-field-wrap {
+  display: flex; align-items: center;
+  background: #F5F5F5; border-radius: 12px;
+  border: 1.5px solid #E0E0E0; transition: all .2s;
+  overflow: hidden;
+}
+.login-field-wrap:focus-within {
+  border-color: #00796B;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(0,121,107,0.1);
+}
+.login-field-icon {
+  padding: 0 12px;
+  color: #9E9E9E; display: flex; align-items: center;
+  transition: color .2s;
+}
+.login-field-wrap:focus-within .login-field-icon { color: #00796B; }
+.login-field-icon .material-icons-round { font-size: 20px; }
+.login-field input {
+  flex: 1; border: none; outline: none; background: transparent;
+  font-family: 'Roboto', sans-serif; font-size: .95rem;
+  color: #212121; padding: 13px 12px 13px 0;
+}
+.login-field input::placeholder { color: #BDBDBD; }
+.login-eye {
+  padding: 0 12px; cursor: pointer; color: #9E9E9E;
+  display: flex; align-items: center; transition: color .2s;
+  background: none; border: none;
+}
+.login-eye:hover { color: #00796B; }
+.login-eye .material-icons-round { font-size: 20px; }
+
+.login-btn {
+  width: 100%; padding: 15px;
+  background: linear-gradient(135deg, #00796B, #004D40);
+  color: #fff; border: none; border-radius: 12px;
+  font-family: 'Roboto', sans-serif; font-size: .96rem;
+  font-weight: 500; letter-spacing: .06em; cursor: pointer;
+  transition: all .2s; margin-top: 8px;
+  box-shadow: 0 4px 16px rgba(0,121,107,0.35);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.login-btn:hover {
+  box-shadow: 0 6px 24px rgba(0,121,107,0.45);
+  transform: translateY(-1px);
+}
+.login-btn:disabled { opacity: .65; cursor: not-allowed; transform: none; }
+.login-btn .material-icons-round { font-size: 20px; }
+
+.login-error {
+  display: none; align-items: center; gap: 8px;
+  background: #FDECEA; border: 1px solid rgba(176,0,32,.2);
+  border-radius: 10px; padding: 10px 14px;
+  font-size: .82rem; color: #B00020; margin-bottom: 16px;
+}
+.login-error .material-icons-round { font-size: 18px; flex-shrink: 0; }
+
+.login-footer {
+  text-align: center; margin-top: 24px;
+  font-size: .72rem; color: #BDBDBD; letter-spacing: .04em;
+}
+
+/* shake animation per errore */
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-8px)}
+  40%{transform:translateX(8px)}
+  60%{transform:translateX(-6px)}
+  80%{transform:translateX(6px)}
+}
+.shake { animation: shake .4s ease; }
+
 </style>
 </head>
 <body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login-screen">
+  <div class="login-card" id="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">
+        <span class="material-icons-round">vaccines</span>
+      </div>
+      <div class="login-app-name"><strong>Ortho</strong>Manager</div>
+      <div class="login-subtitle">GESTIONALE PAZIENTI ORTOPEDICI</div>
+    </div>
+
+    <div class="login-error" id="login-err">
+      <span class="material-icons-round">error_outline</span>
+      <span id="login-err-text">Credenziali non valide</span>
+    </div>
+
+    <div class="login-field">
+      <label>Nome utente</label>
+      <div class="login-field-wrap">
+        <div class="login-field-icon"><span class="material-icons-round">person</span></div>
+        <input type="text" id="l-user" placeholder="nome.cognome" autocomplete="username"
+               onkeydown="if(event.key==='Enter')document.getElementById('l-pass').focus()">
+      </div>
+    </div>
+
+    <div class="login-field">
+      <label>Password</label>
+      <div class="login-field-wrap">
+        <div class="login-field-icon"><span class="material-icons-round">lock</span></div>
+        <input type="password" id="l-pass" placeholder="••••••••••••" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="login-eye" onclick="togglePwd()" tabindex="-1" id="eye-btn">
+          <span class="material-icons-round" id="eye-icon">visibility</span>
+        </button>
+      </div>
+    </div>
+
+    <button class="login-btn" onclick="doLogin()" id="login-btn">
+      <span class="material-icons-round">login</span>
+      Accedi
+    </button>
+
+    <div class="login-footer">
+      Accesso riservato al personale autorizzato<br>
+      Bambino Gesù · Palidoro · EUR
+    </div>
+  </div>
+</div>
+
 <div id="app">
 
   <!-- TOP APP BAR -->
@@ -628,6 +805,16 @@ body {
             <div class="sr-label" id="set-username">—</div>
             <div class="sr-sub">Operatore connesso</div>
           </div>
+        </div>
+        <div class="settings-row" onclick="doLogout()">
+          <div class="sr-icon-wrap" style="background:#FFF3E0">
+            <span class="material-icons-round" style="color:#E65100">logout</span>
+          </div>
+          <div class="sr-text">
+            <div class="sr-label" style="color:#E65100">Esci</div>
+            <div class="sr-sub">Disconnetti questo dispositivo</div>
+          </div>
+          <div class="sr-chevron"><span class="material-icons-round">chevron_right</span></div>
         </div>
         <div class="settings-row" onclick="doDisconnect()">
           <div class="sr-icon-wrap" style="background:#FDECEA">
@@ -980,7 +1167,8 @@ async function delPz(id){
 
 /* ---- DISCONNECT ---- */
 function doDisconnect(){
-  if(!confirm('Resettare la configurazione?\nI dati rimarranno su JSONBin.')) return;
+  if(!confirm('Resettare la configurazione?
+I dati rimarranno su JSONBin.')) return;
   localStorage.removeItem(STORAGE); location.reload();
 }
 
@@ -991,6 +1179,68 @@ function snack(msg,type){
   setTimeout(function(){s.className='';},2800);
 }
 function esc(s){ return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ---- LOGIN ---- */
+var USERS = [
+  { username: 'daniela.lamberti', password: 'daniela.lamberti', display: 'Daniela Lamberti' }
+];
+var AUTH_KEY = 'ortho_auth';
+
+function checkAuth(){
+  try{ return JSON.parse(sessionStorage.getItem(AUTH_KEY)); }catch(e){ return null; }
+}
+
+function doLogin(){
+  var user = document.getElementById('l-user').value.trim().toLowerCase();
+  var pass = document.getElementById('l-pass').value;
+  var errEl = document.getElementById('login-err');
+  var btn = document.getElementById('login-btn');
+
+  errEl.style.display = 'none';
+  var found = USERS.find(function(u){ return u.username===user && u.password===pass; });
+
+  if(!found){
+    document.getElementById('login-err-text').textContent = 'Nome utente o password non corretti.';
+    errEl.style.display = 'flex';
+    var card = document.getElementById('login-card');
+    card.classList.remove('shake');
+    void card.offsetWidth; // reflow
+    card.classList.add('shake');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="material-icons-round">hourglass_top</span>Accesso in corso…';
+  sessionStorage.setItem(AUTH_KEY, JSON.stringify({ username: found.username, display: found.display }));
+
+  setTimeout(function(){
+    document.getElementById('login-screen').classList.add('hidden');
+    USERNAME = found.display;
+    document.getElementById('set-username').textContent = USERNAME;
+  }, 500);
+}
+
+function togglePwd(){
+  var inp = document.getElementById('l-pass');
+  var icon = document.getElementById('eye-icon');
+  if(inp.type==='password'){ inp.type='text'; icon.textContent='visibility_off'; }
+  else { inp.type='password'; icon.textContent='visibility'; }
+}
+
+function doLogout(){
+  sessionStorage.removeItem(AUTH_KEY);
+  location.reload();
+}
+
+/* Controlla se già loggato in questa sessione */
+(function checkSession(){
+  var auth = checkAuth();
+  if(auth){
+    document.getElementById('login-screen').classList.add('hidden');
+    USERNAME = auth.display;
+  }
+})();
+
 </script>
 </body>
 </html>
