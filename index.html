@@ -656,7 +656,101 @@ body {
 }
 .shake { animation: shake .4s ease; }
 
+
+/* =============================================
+   EXPORT MODAL
+============================================= */
+.export-fab {
+  position: fixed;
+  bottom: calc(var(--nav-h) + 80px);
+  right: calc(50% - 300px + 16px);
+  width: 48px; height: 48px; border-radius: 14px;
+  background: #fff;
+  color: var(--md-primary);
+  border: 2px solid var(--md-primary-container);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px var(--md-shadow);
+  transition: transform .2s, box-shadow .2s;
+  z-index: 50;
+}
+.export-fab:hover { transform: scale(1.06); box-shadow: 0 4px 14px var(--md-shadow); }
+.export-fab .material-icons-round { font-size: 22px; }
+@media(max-width:600px){ .export-fab { right: 16px; } }
+
+.export-section { margin-bottom: 20px; }
+.export-section-title {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--md-on-surface-var);
+  margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+}
+.export-section-title::after {
+  content:''; flex:1; height:1px; background: var(--md-outline-var);
+}
+
+.export-option {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: 10px;
+  border: 1.5px solid var(--md-outline-var);
+  background: var(--md-surface-1);
+  margin-bottom: 8px; cursor: pointer; transition: all .15s;
+}
+.export-option:hover { border-color: var(--md-primary); background: #E0F2F1; }
+.export-option.selected {
+  border-color: var(--md-primary);
+  background: var(--md-primary-container);
+}
+.export-option-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,121,107,.1); flex-shrink: 0;
+}
+.export-option-icon .material-icons-round { font-size: 20px; color: var(--md-primary); }
+.export-option-label { font-size: .9rem; font-weight: 500; color: var(--md-on-surface); }
+.export-option-sub { font-size: .75rem; color: var(--md-on-surface-var); margin-top: 2px; }
+.export-option input[type=radio] { display: none; }
+
+.export-filter-row {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;
+}
+.export-filter-chip {
+  padding: 6px 14px; border-radius: 8px; font-size: .8rem; font-weight: 500;
+  border: 1.5px solid var(--md-outline); background: #fff;
+  color: var(--md-on-surface-var); cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; gap: 5px;
+}
+.export-filter-chip .material-icons-round { font-size: 14px; display: none; }
+.export-filter-chip.selected {
+  background: var(--md-primary-container);
+  border-color: var(--md-primary);
+  color: var(--md-on-primary-container);
+}
+.export-filter-chip.selected .material-icons-round { display: inline; }
+
+.export-preview {
+  background: var(--md-surface-1); border-radius: 10px;
+  border: 1px solid var(--md-outline-var);
+  padding: 12px 14px; font-size: .8rem;
+  color: var(--md-on-surface-var); margin-top: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.export-preview .material-icons-round { font-size: 18px; color: var(--md-primary); }
+.md-btn-tonal {
+  width: 100%; padding: 14px;
+  background: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+  border: none; border-radius: 24px;
+  font-family: 'Roboto', sans-serif; font-size: .94rem;
+  font-weight: 500; letter-spacing: .06em; cursor: pointer;
+  transition: all .2s; margin-top: 8px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.md-btn-tonal:hover { filter: brightness(.95); }
+.md-btn-tonal:disabled { opacity: .6; cursor: not-allowed; }
+.md-btn-tonal .material-icons-round { font-size: 20px; }
+
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -858,6 +952,80 @@ body {
     </button>
   </nav>
 
+</div>
+
+
+<!-- FAB EXPORT -->
+<button class="export-fab" onclick="openExport()" id="export-fab" title="Esporta Excel">
+  <span class="material-icons-round">download</span>
+</button>
+
+<!-- MODAL EXPORT -->
+<div class="modal-scrim" id="export-scrim" onclick="closeExport()"></div>
+<div class="modal-sheet" id="export-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-title">Esporta in Excel</div>
+    <button class="icon-btn" onclick="closeExport()" style="color:var(--md-on-surface-var)">
+      <span class="material-icons-round">close</span>
+    </button>
+  </div>
+  <div class="sheet-body">
+
+    <!-- RAGGRUPPA PER -->
+    <div class="export-section">
+      <div class="export-section-title">Raggruppa per</div>
+      <div class="export-option selected" id="exp-opt-tutti" onclick="selectExportGroup('tutti')">
+        <div class="export-option-icon"><span class="material-icons-round">group</span></div>
+        <div>
+          <div class="export-option-label">Tutti i pazienti</div>
+          <div class="export-option-sub">Un unico foglio con tutti i pazienti</div>
+        </div>
+      </div>
+      <div class="export-option" id="exp-opt-eta" onclick="selectExportGroup('eta')">
+        <div class="export-option-icon"><span class="material-icons-round">cake</span></div>
+        <div>
+          <div class="export-option-label">Per fascia d'età</div>
+          <div class="export-option-sub">Foglio separato per ogni fascia (0-18, 19-40, 41-65, 65+)</div>
+        </div>
+      </div>
+      <div class="export-option" id="exp-opt-patologia" onclick="selectExportGroup('patologia')">
+        <div class="export-option-icon"><span class="material-icons-round">medical_information</span></div>
+        <div>
+          <div class="export-option-label">Per patologia</div>
+          <div class="export-option-sub">Foglio separato per ogni patologia</div>
+        </div>
+      </div>
+      <div class="export-option" id="exp-opt-intervento" onclick="selectExportGroup('intervento')">
+        <div class="export-option-icon"><span class="material-icons-round">vaccines</span></div>
+        <div>
+          <div class="export-option-label">Per tipo intervento</div>
+          <div class="export-option-sub">Foglio separato per ogni tipo di intervento</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTRO AGGIUNTIVO -->
+    <div class="export-section">
+      <div class="export-section-title">Filtra pazienti</div>
+      <div class="export-filter-row" id="exp-filter-row">
+        <div class="export-filter-chip selected" onclick="toggleExportFilter(this,'tutti')">
+          <span class="material-icons-round">done</span>Tutti
+        </div>
+      </div>
+    </div>
+
+    <!-- ANTEPRIMA -->
+    <div class="export-preview">
+      <span class="material-icons-round">info</span>
+      <span id="exp-preview-text">Tutti i pazienti verranno esportati</span>
+    </div>
+
+    <button class="md-btn-tonal" onclick="doExport()" id="exp-btn" style="margin-top:16px">
+      <span class="material-icons-round">download</span>
+      Scarica XLSM
+    </button>
+  </div>
 </div>
 
 <!-- MODAL BOTTOM SHEET -->
@@ -1144,6 +1312,209 @@ async function savePz(){
   btn.disabled=false;
   btn.innerHTML='<span class="material-icons-round">'+(editId?'save':'add')+'</span>'+(editId?'Aggiorna Paziente':'Salva Paziente');
 }
+
+
+/* ============================================================
+   EXPORT
+============================================================ */
+var exportGroup = 'tutti';
+var exportFilters = ['tutti'];
+
+function openExport(){
+  buildExportFilters();
+  updateExportPreview();
+  document.getElementById('export-scrim').classList.add('open');
+  document.getElementById('export-sheet').classList.add('open');
+}
+function closeExport(){
+  document.getElementById('export-scrim').classList.remove('open');
+  document.getElementById('export-sheet').classList.remove('open');
+}
+
+function selectExportGroup(g){
+  exportGroup = g;
+  ['tutti','eta','patologia','intervento'].forEach(function(k){
+    document.getElementById('exp-opt-'+k).classList.toggle('selected', k===g);
+  });
+  buildExportFilters();
+  updateExportPreview();
+}
+
+function buildExportFilters(){
+  var row = document.getElementById('exp-filter-row');
+  var chips = '<div class="export-filter-chip selected" onclick="toggleExportFilter(this,\'tutti\')"><span class="material-icons-round">done</span>Tutti</div>';
+
+  if(exportGroup === 'patologia'){
+    var pats = [];
+    patients.forEach(function(p){ if(p.patologia && pats.indexOf(p.patologia)<0) pats.push(p.patologia); });
+    pats.sort().forEach(function(p){
+      chips += '<div class="export-filter-chip" onclick="toggleExportFilter(this,\''+escAttr(p)+'\')"><span class="material-icons-round">done</span>'+esc(p)+'</div>';
+    });
+  } else if(exportGroup === 'intervento'){
+    var ints = [];
+    patients.forEach(function(p){ if(p.intervento && ints.indexOf(p.intervento)<0) ints.push(p.intervento); });
+    ints.sort().forEach(function(i){
+      chips += '<div class="export-filter-chip" onclick="toggleExportFilter(this,\''+escAttr(i)+'\')"><span class="material-icons-round">done</span>'+esc(i)+'</div>';
+    });
+  } else if(exportGroup === 'eta'){
+    ['0-18','19-40','41-65','65+'].forEach(function(f){
+      chips += '<div class="export-filter-chip" onclick="toggleExportFilter(this,\''+f+'\')"><span class="material-icons-round">done</span>'+f+' anni</div>';
+    });
+  }
+
+  row.innerHTML = chips;
+  exportFilters = ['tutti'];
+}
+
+function toggleExportFilter(el, val){
+  if(val === 'tutti'){
+    exportFilters = ['tutti'];
+    document.querySelectorAll('#exp-filter-row .export-filter-chip').forEach(function(c){ c.classList.remove('selected'); });
+    el.classList.add('selected');
+  } else {
+    exportFilters = exportFilters.filter(function(f){ return f !== 'tutti'; });
+    el.classList.toggle('selected');
+    var sel = Array.from(document.querySelectorAll('#exp-filter-row .export-filter-chip.selected')).map(function(c){ return c.textContent.trim(); });
+    if(sel.length === 0){ exportFilters = ['tutti']; document.querySelector('#exp-filter-row .export-filter-chip').classList.add('selected'); }
+    else { exportFilters = exportFilters.indexOf(val)>=0 ? exportFilters.filter(function(f){return f!==val;}) : exportFilters.concat([val]); }
+    if(exportFilters.length===0) exportFilters=['tutti'];
+    var tuttiChip = document.querySelector('#exp-filter-row .export-filter-chip');
+    tuttiChip.classList.toggle('selected', exportFilters[0]==='tutti');
+  }
+  updateExportPreview();
+}
+
+function getExportPatients(){
+  var list = patients.slice();
+  if(exportFilters[0] !== 'tutti'){
+    if(exportGroup === 'patologia'){
+      list = list.filter(function(p){ return exportFilters.indexOf(p.patologia)>=0; });
+    } else if(exportGroup === 'intervento'){
+      list = list.filter(function(p){ return exportFilters.indexOf(p.intervento)>=0; });
+    } else if(exportGroup === 'eta'){
+      list = list.filter(function(p){
+        var age = calcAge(p.nascita);
+        return exportFilters.some(function(f){
+          if(f==='0-18') return age>=0&&age<=18;
+          if(f==='19-40') return age>=19&&age<=40;
+          if(f==='41-65') return age>=41&&age<=65;
+          if(f==='65+') return age>65;
+          return false;
+        });
+      });
+    }
+  }
+  return list;
+}
+
+function calcAge(nascita){
+  if(!nascita) return -1;
+  var d = new Date(nascita); var today = new Date();
+  var age = today.getFullYear()-d.getFullYear();
+  var m = today.getMonth()-d.getMonth();
+  if(m<0||(m===0&&today.getDate()<d.getDate())) age--;
+  return age;
+}
+
+function getFasciaEta(nascita){
+  var age = calcAge(nascita);
+  if(age<0) return 'Età non disponibile';
+  if(age<=18) return '0-18 anni';
+  if(age<=40) return '19-40 anni';
+  if(age<=65) return '41-65 anni';
+  return '65+ anni';
+}
+
+function updateExportPreview(){
+  var list = getExportPatients();
+  var labels = { tutti:'Tutti i pazienti', eta:'fascia d\'età', patologia:'patologia', intervento:'tipo intervento' };
+  var fogli = 1;
+  if(exportGroup !== 'tutti' && exportFilters[0]==='tutti'){
+    var keys = {};
+    list.forEach(function(p){
+      var k = exportGroup==='eta'?getFasciaEta(p.nascita):(exportGroup==='patologia'?p.patologia:p.intervento);
+      keys[k||'Non specificato']=1;
+    });
+    fogli = Object.keys(keys).length;
+  }
+  var txt = list.length+' pazienti · '+fogli+(fogli>1?' fogli':' foglio')+' Excel';
+  document.getElementById('exp-preview-text').textContent = txt;
+}
+
+function pzToRow(p){
+  var age = calcAge(p.nascita);
+  return {
+    'Cognome': p.cognome||'',
+    'Nome': p.nome||'',
+    'Data di Nascita': p.nascita ? new Date(p.nascita).toLocaleDateString('it-IT') : '',
+    'Età': age>=0 ? age : '',
+    'Fascia Età': getFasciaEta(p.nascita),
+    'Patologia': p.patologia||'',
+    'Intervento': p.intervento||'',
+    'Note': p.note||'',
+    'ID': p.id||''
+  };
+}
+
+function sheetFromList(list){
+  var rows = list.map(pzToRow);
+  return XLSX.utils.json_to_sheet(rows);
+}
+
+function styleSheet(ws, nRows){
+  // Larghezze colonne
+  ws['!cols'] = [
+    {wch:18},{wch:18},{wch:16},{wch:6},{wch:12},
+    {wch:28},{wch:28},{wch:30},{wch:18}
+  ];
+}
+
+function doExport(){
+  var list = getExportPatients();
+  if(!list.length){ snack('Nessun paziente da esportare','err'); return; }
+
+  var wb = XLSX.utils.book_new();
+  // Imposta proprietà file per XLSM
+  wb.Props = { Title:'OrthoManager', Subject:'Pazienti Ortopedici', Author:'OrthoManager', CreatedDate: new Date() };
+
+  if(exportGroup === 'tutti' || exportFilters[0] !== 'tutti'){
+    var ws = sheetFromList(list);
+    styleSheet(ws, list.length);
+    XLSX.utils.book_append_sheet(wb, ws, 'Pazienti');
+  } else {
+    // Raggruppa per chiave
+    var groups = {};
+    list.forEach(function(p){
+      var k;
+      if(exportGroup==='eta') k = getFasciaEta(p.nascita);
+      else if(exportGroup==='patologia') k = p.patologia||'Non specificato';
+      else k = p.intervento||'Non specificato';
+      if(!groups[k]) groups[k]=[];
+      groups[k].push(p);
+    });
+    // Foglio riepilogo
+    var summary = Object.keys(groups).map(function(k){ return { 'Gruppo': k, 'N. Pazienti': groups[k].length }; });
+    var wsSumm = XLSX.utils.json_to_sheet(summary);
+    wsSumm['!cols'] = [{wch:30},{wch:14}];
+    XLSX.utils.book_append_sheet(wb, wsSumm, 'Riepilogo');
+    // Fogli per gruppo
+    Object.keys(groups).sort().forEach(function(k){
+      var name = k.replace(/[\/*?:\[\]]/g,'').slice(0,31);
+      var ws = sheetFromList(groups[k]);
+      styleSheet(ws, groups[k].length);
+      XLSX.utils.book_append_sheet(wb, ws, name);
+    });
+  }
+
+  var date = new Date().toLocaleDateString('it-IT').replace(/\//g,'-');
+  var fname = 'OrthoManager_'+date+'.xlsm';
+  // Esporta come xlsm (formato xlsm = xlsx con macro, stessa struttura)
+  XLSX.writeFile(wb, fname, { bookType: 'xlsm', type: 'binary' });
+  closeExport();
+  snack('File scaricato: '+fname);
+}
+
+function escAttr(s){ return (s||'').replace(/'/g,"\\'"); }
 
 /* ---- DELETE ---- */
 async function delPz(id){
