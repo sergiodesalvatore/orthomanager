@@ -108,7 +108,7 @@ body {
    SUMMARY CARDS — MD3 style 2x2
 ============================================= */
 .summary-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
+  display: grid; grid-template-columns: 1fr 1fr; max-width: 400px;
   gap: 12px; margin-bottom: 16px;
 }
 .sum-card {
@@ -564,45 +564,16 @@ body {
         </div>
         <div class="sum-card sc-blue">
           <div class="sum-card-top">
-            <span class="sum-card-label">Ricoverati</span>
-            <div class="sum-card-icon"><span class="material-icons-round">bed</span></div>
+            <span class="sum-card-label">Questo mese</span>
+            <div class="sum-card-icon"><span class="material-icons-round">calendar_today</span></div>
           </div>
           <div class="sum-card-value" id="s-ric">0</div>
-        </div>
-        <div class="sum-card sc-green">
-          <div class="sum-card-top">
-            <span class="sum-card-label">Dimessi</span>
-            <div class="sum-card-icon"><span class="material-icons-round">check_circle</span></div>
-          </div>
-          <div class="sum-card-value" id="s-dim">0</div>
-        </div>
-        <div class="sum-card sc-amber">
-          <div class="sum-card-top">
-            <span class="sum-card-label">Programmati</span>
-            <div class="sum-card-icon"><span class="material-icons-round">event</span></div>
-          </div>
-          <div class="sum-card-value" id="s-prog">0</div>
         </div>
       </div>
 
       <div class="search-field">
         <span class="material-icons-round">search</span>
         <input type="text" id="q-search" placeholder="Cerca paziente, patologia, intervento…" oninput="render()">
-      </div>
-
-      <div class="chip-row">
-        <div class="chip active" onclick="setFilter(this,'')">
-          <span class="material-icons-round">done</span>Tutti
-        </div>
-        <div class="chip" onclick="setFilter(this,'Ricoverato')">
-          <span class="material-icons-round">done</span>Ricoverati
-        </div>
-        <div class="chip" onclick="setFilter(this,'Dimesso')">
-          <span class="material-icons-round">done</span>Dimessi
-        </div>
-        <div class="chip" onclick="setFilter(this,'Programmato')">
-          <span class="material-icons-round">done</span>Programmati
-        </div>
       </div>
 
       <div class="list-header">
@@ -620,12 +591,6 @@ body {
         <input type="text" id="q-search2" placeholder="Cerca…" oninput="render()">
       </div>
       <div id="p-list2"></div>
-    </div>
-
-    <!-- PAGE: SCHEDULE -->
-    <div class="page" id="page-2">
-      <div class="page-title">Agenda dimissioni</div>
-      <div id="sched-list"></div>
     </div>
 
     <!-- PAGE: SETTINGS -->
@@ -699,11 +664,6 @@ body {
       <div class="nav-icon"><span class="material-icons-round">people</span></div>
       <span class="nav-label">Pazienti</span>
     </button>
-    <button class="nav-item" id="nav-2" onclick="goPage(2)">
-      <div class="nav-indicator"></div>
-      <div class="nav-icon"><span class="material-icons-round">calendar_month</span></div>
-      <span class="nav-label">Agenda</span>
-    </button>
     <button class="nav-item" id="nav-3" onclick="goPage(3)">
       <div class="nav-indicator"></div>
       <div class="nav-icon"><span class="material-icons-round">settings</span></div>
@@ -730,26 +690,9 @@ body {
     </div>
     <div class="md-field"><label>Nome *</label><input type="text" id="f-nome" placeholder="Mario"></div>
     <div class="md-field"><label>Cognome *</label><input type="text" id="f-cog" placeholder="Rossi"></div>
+    <div class="md-field"><label>Data di Nascita</label><input type="date" id="f-nasc"></div>
     <div class="md-field"><label>Patologia *</label><input type="text" id="f-pat" placeholder="es. Scoliosi, Coxartrosi…"></div>
-    <div class="md-field">
-      <label>Tipo Intervento *</label>
-      <select id="f-int" onchange="document.getElementById('f-altro-g').style.display=this.value==='Altro'?'block':'none'">
-        <option value="">Seleziona…</option>
-        <option>Artroscopia</option><option>Protesi anca</option><option>Protesi ginocchio</option>
-        <option>Fusione vertebrale</option><option>Osteotomia</option><option>Fissazione frattura</option><option>Altro</option>
-      </select>
-    </div>
-    <div class="md-field" id="f-altro-g" style="display:none">
-      <label>Specifica intervento</label>
-      <input type="text" id="f-altro" placeholder="Descrivi l'intervento">
-    </div>
-    <div class="md-field">
-      <label>Stato</label>
-      <select id="f-stato">
-        <option>Ricoverato</option><option>Programmato</option><option>Dimesso</option>
-      </select>
-    </div>
-    <div class="md-field"><label>Data Dimissione</label><input type="date" id="f-data"></div>
+    <div class="md-field"><label>Tipo Intervento *</label><input type="text" id="f-int" placeholder="es. Artroscopia, Protesi anca, Fusione vertebrale…"></div>
     <div class="md-field"><label>Note cliniche</label><textarea id="f-note" placeholder="Note aggiuntive…"></textarea></div>
     <button class="md-btn-filled" onclick="savePz()" id="m-btn">
       <span class="material-icons-round">save</span>
@@ -766,7 +709,7 @@ var BIN_ID   = '';
 var USERNAME = 'Sergio';
 var STORAGE  = 'ortho_v3';
 
-var patients = [], editId = null, filterStato = '', currentPage = 0;
+var patients = [], editId = null, currentPage = 0;
 var autoRefreshInterval = null, lastSync = null;
 
 /* ---- INIT ---- */
@@ -836,7 +779,7 @@ async function loadData(){
   if(!BIN_ID){ patients=[];render();updateStats();return; }
   try{
     patients = await jbGet();
-    render(); updateStats(); renderSchedule();
+    render(); updateStats();
   }catch(e){
     document.getElementById('p-list').innerHTML = '<div class="empty-state"><div class="empty-icon"><span class="material-icons-round">wifi_off</span></div><h3>Errore di connessione</h3><p>Ricarica la pagina</p></div>';
   }
@@ -854,7 +797,7 @@ async function silentSync(){
   try{
     var fresh = await jbGet();
     if(JSON.stringify(fresh)!==JSON.stringify(patients)){
-      patients=fresh; render(); updateStats(); renderSchedule();
+      patients=fresh; render(); updateStats();
     }
     lastSync = new Date();
     setSyncState('ok');
@@ -888,17 +831,18 @@ async function syncNow(){
 
 /* ---- STATS ---- */
 function updateStats(){
-  document.getElementById('s-tot').textContent  = patients.length;
-  document.getElementById('s-ric').textContent  = patients.filter(function(p){return p.stato==='Ricoverato';}).length;
-  document.getElementById('s-dim').textContent  = patients.filter(function(p){return p.stato==='Dimesso';}).length;
-  document.getElementById('s-prog').textContent = patients.filter(function(p){return p.stato==='Programmato';}).length;
+  document.getElementById('s-tot').textContent = patients.length;
+  var now = new Date(); var ym = now.getFullYear()+'-'+(now.getMonth()+1);
+  document.getElementById('s-ric').textContent = patients.filter(function(p){ return p.createdAt && p.createdAt.startsWith(ym.length===6?ym:'0'+ym); }).length;
 }
 
 /* ---- RENDER ---- */
 function render(){
-  var s = (document.getElementById('q-search').value||document.getElementById('q-search2').value||'').toLowerCase();
+  var s = (document.getElementById('q-search').value||'').toLowerCase();
+  var s2el = document.getElementById('q-search2'); 
+  if(!s && s2el) s = s2el.value.toLowerCase();
   var list = patients.filter(function(p){
-    return((!s)||(p.nome+' '+p.cognome+' '+p.patologia+' '+p.intervento).toLowerCase().includes(s))&&(!filterStato||p.stato===filterStato);
+    return(!s)||(p.nome+' '+p.cognome+' '+p.patologia+' '+p.intervento).toLowerCase().includes(s);
   });
   document.getElementById('cnt').textContent = list.length;
   var html = list.length ? renderCards(list) : emptyHTML();
@@ -908,9 +852,8 @@ function render(){
 
 function renderCards(list){
   return list.map(function(p,i){
-    var sc = p.stato==='Ricoverato'?'s-ric':p.stato==='Dimesso'?'s-dim':'s-prog';
-    var dd = p.dimissione ? new Date(p.dimissione).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'}) : '—';
     var initials = ((p.nome||'?')[0]+(p.cognome||'?')[0]).toUpperCase();
+    var dn = p.nascita ? new Date(p.nascita).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'}) : '—';
     var noteRow = p.note ? '<span style="font-size:.76rem;opacity:.7;font-style:italic">'+esc(p.note)+'</span>' : '';
     return '<div class="p-card" style="animation-delay:'+i*.04+'s">'
       +'<div class="pc-main">'
@@ -919,13 +862,11 @@ function renderCards(list){
       +'<div class="pc-name">'+esc(p.cognome)+', '+esc(p.nome)+'</div>'
       +'<div class="pc-meta">'
       +'<span>🩺 '+esc(p.patologia)+'</span>'
-      +'<span>⚕️ '+esc(p.intervento)+(p.interventoAltro?' — '+esc(p.interventoAltro):'')+'</span>'
+      +'<span>⚕️ '+esc(p.intervento)+'</span>'
+      +'<span>🎂 '+dn+'</span>'
       +noteRow
       +'</div></div>'
-      +'<div class="pc-right">'
-      +'<div class="status-chip '+sc+'">'+esc(p.stato)+'</div>'
-      +'<div class="pc-date">📅 '+dd+'</div>'
-      +'</div></div>'
+      +'</div>'
       +'<div class="pc-actions">'
       +'<button class="pc-action-btn edit" onclick="editPz(\''+p.id+'\')">'
       +'<span class="material-icons-round">edit</span>Modifica'
@@ -937,20 +878,6 @@ function renderCards(list){
   }).join('');
 }
 
-function renderSchedule(){
-  var today = new Date(); today.setHours(0,0,0,0);
-  var end = new Date(today); end.setDate(end.getDate()+14);
-  var list = patients.filter(function(p){
-    if(!p.dimissione) return false;
-    var d = new Date(p.dimissione); d.setHours(0,0,0,0);
-    return d>=today && d<=end;
-  }).sort(function(a,b){ return new Date(a.dimissione)-new Date(b.dimissione); });
-
-  var el = document.getElementById('sched-list');
-  if(!list.length){
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon"><span class="material-icons-round">event_available</span></div><h3>Nessuna dimissione</h3><p>Nessuna dimissione programmata nei prossimi 14 giorni</p></div>';
-    return;
-  }
   var grouped = {};
   list.forEach(function(p){
     var k = new Date(p.dimissione).toLocaleDateString('it-IT',{weekday:'long',day:'2-digit',month:'long'});
@@ -968,23 +895,20 @@ function emptyHTML(){
   return '<div class="empty-state"><div class="empty-icon"><span class="material-icons-round">person_search</span></div><h3>Nessun paziente</h3><p>Aggiungi il primo paziente con il pulsante +</p></div>';
 }
 
-/* ---- FILTERS ---- */
-function setFilter(el, val){
-  filterStato = val;
-  document.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('active'); });
-  el.classList.add('active');
-  render();
-}
+
 
 /* ---- NAVIGATION ---- */
 function goPage(n){
   currentPage = n;
-  for(var i=0;i<4;i++){
-    document.getElementById('page-'+i).classList.toggle('active',i===n);
-    document.getElementById('nav-'+i).classList.toggle('active',i===n);
-  }
+  // pages: 0=dash, 1=patients, 3=settings  nav: 0,1,3
+  var pageMap=[0,1,3];
+  pageMap.forEach(function(pid,i){
+    document.getElementById('page-'+pid).classList.toggle('active', i===n);
+  });
+  [0,1,3].forEach(function(nid,i){
+    document.getElementById('nav-'+nid).classList.toggle('active', i===n);
+  });
   document.getElementById('fab').style.display = (n===0||n===1)?'flex':'none';
-  if(n===2) renderSchedule();
 }
 function focusSearch(){ goPage(0); setTimeout(function(){document.getElementById('q-search').focus();},100); }
 
@@ -997,10 +921,7 @@ function openModal(p){
   document.getElementById('f-cog').value   = p&&p.cognome||'';
   document.getElementById('f-pat').value   = p&&p.patologia||'';
   document.getElementById('f-int').value   = p&&p.intervento||'';
-  document.getElementById('f-altro').value = p&&p.interventoAltro||'';
-  document.getElementById('f-altro-g').style.display = (p&&p.intervento==='Altro')?'block':'none';
-  document.getElementById('f-stato').value = p&&p.stato||'Ricoverato';
-  document.getElementById('f-data').value  = p&&p.dimissione||'';
+  document.getElementById('f-nasc').value  = p&&p.nascita||'';
   document.getElementById('f-note').value  = p&&p.note||'';
   document.getElementById('m-err').style.display = 'none';
   document.getElementById('modal-scrim').classList.add('open');
@@ -1017,10 +938,8 @@ async function savePz(){
   var nome=document.getElementById('f-nome').value.trim();
   var cog=document.getElementById('f-cog').value.trim();
   var pat=document.getElementById('f-pat').value.trim();
-  var intv=document.getElementById('f-int').value;
-  var altro=document.getElementById('f-altro').value.trim();
-  var stato=document.getElementById('f-stato').value;
-  var data=document.getElementById('f-data').value;
+  var intv=document.getElementById('f-int').value.trim();
+  var nasc=document.getElementById('f-nasc').value;
   var note=document.getElementById('f-note').value.trim();
   var errEl=document.getElementById('m-err');
   var btn=document.getElementById('m-btn');
@@ -1030,7 +949,7 @@ async function savePz(){
     errEl.style.display='flex'; return;
   }
   errEl.style.display='none';
-  var rec={nome:nome,cognome:cog,patologia:pat,intervento:intv,interventoAltro:altro,stato:stato,dimissione:data,note:note};
+  var rec={nome:nome,cognome:cog,patologia:pat,intervento:intv,nascita:nasc,note:note};
   btn.disabled=true; btn.innerHTML='<span class="material-icons-round">hourglass_top</span>Salvataggio…';
 
   var list=patients.slice();
@@ -1039,7 +958,7 @@ async function savePz(){
 
   try{
     if(BIN_ID) await jbPut(list);
-    patients=list; render(); updateStats(); renderSchedule();
+    patients=list; render(); updateStats();
     closeModal(); snack(editId?'Paziente aggiornato':'Paziente aggiunto ✓');
   }catch(e){
     document.getElementById('m-err-text').textContent='Errore di rete. Riprova.';
@@ -1055,7 +974,7 @@ async function delPz(id){
   var list=patients.filter(function(p){return p.id!==id;});
   try{
     if(BIN_ID) await jbPut(list);
-    patients=list; render(); updateStats(); renderSchedule(); snack('Paziente eliminato','err');
+    patients=list; render(); updateStats(); snack('Paziente eliminato','err');
   }catch(e){ snack('Errore di rete','err'); }
 }
 
