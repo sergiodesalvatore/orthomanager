@@ -894,9 +894,8 @@ body {
 
 
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
 
+<script>
 /* ============================================================
    VARIABILI GLOBALI
 ============================================================ */
@@ -1158,8 +1157,7 @@ async function delPz(id){
 
 /* ---- DISCONNECT ---- */
 function doDisconnect(){
-  if(!confirm('Resettare la configurazione?
-I dati rimarranno su JSONBin.')) return;
+  if(!confirm('Resettare la configurazione? I dati rimarranno su JSONBin.')) return;
   localStorage.removeItem(STORAGE); location.reload();
 }
 
@@ -1170,10 +1168,8 @@ function snack(msg,type){
   setTimeout(function(){s.className='';},2800);
 }
 function esc(s){ return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-/* ============================================================
-   LOGIN
-============================================================ */
+</script>
+<script>
 /* ============ LOGIN — script separato ============ */
 var USERS    = [{ username:'daniela.lamberti', password:'daniela.lamberti', display:'Daniela Lamberti' }];
 var AUTH_KEY = 'ortho_auth';
@@ -1236,8 +1232,6 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   }catch(e){}
 });
-
-}); // fine DOMContentLoaded
 </script>
 </body>
 </html>
